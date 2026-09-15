@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mahjong Purchase Tracker</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+    form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    input { padding: 0.4rem; font-size: 1rem; }
+    input[name="item"] { flex: 1; min-width: 150px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 0.4rem; border-bottom: 1px solid #ddd; }
+    tfoot td { font-weight: bold; }
+    #error { color: #b00020; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Mahjong Purchase Tracker</h1>
+  <form id="purchase-form">
+    <input type="date" name="date" required>
+    <input type="text" name="item" placeholder="Item" required>
+    <input type="number" name="price" placeholder="Price" step="0.01" min="0.01" required>
+    <button type="submit">Add</button>
+  </form>
+  <p id="error" hidden></p>
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Item</th><th>Price</th></tr>
+    </thead>
+    <tbody id="purchase-rows"></tbody>
+    <tfoot>
+      <tr><td colspan="2">Total</td><td id="total">$0.00</td></tr>
+    </tfoot>
+  </table>
+  <script src="app.js"></script>
+</body>
+</html>

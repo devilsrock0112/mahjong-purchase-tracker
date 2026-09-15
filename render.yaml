@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: mahjong-purchase-tracker
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server-hosted.js
+    envVars:
+      - key: JSONBIN_BIN_ID
+        sync: false
+      - key: JSONBIN_MASTER_KEY
+        sync: false
