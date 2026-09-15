@@ -2,16 +2,114 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mahjong Purchase Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
-    form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-    input { padding: 0.4rem; font-size: 1rem; }
+    :root {
+      --cream: #efead9;
+      --forest: #125a2d;
+      --sage: #779164;
+      --sage-dark: #5f7650;
+      --terracotta: #784f24;
+      --terracotta-dark: #5e3d1c;
+      --ink: #33301f;
+      --border: rgba(51, 48, 31, 0.16);
+      --error: #a3352a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Nunito Sans", system-ui, sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      max-width: 680px;
+      margin: 0 auto;
+      padding-inline: 1.25rem;
+      padding-block: 2.5rem;
+    }
+    h1 {
+      font-family: "Roboto Slab", Georgia, serif;
+      font-weight: 900;
+      color: var(--forest);
+      font-size: clamp(1.6rem, 4vw, 2.1rem);
+      letter-spacing: -0.01em;
+      margin: 0 0 1.5rem;
+    }
+    form {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    input {
+      padding: 0.5rem 0.6rem;
+      font-size: 1rem;
+      font-family: inherit;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--cream);
+      color: var(--ink);
+    }
+    input:focus-visible, button:focus-visible {
+      outline: 2px solid var(--sage);
+      outline-offset: 1px;
+    }
     input[name="item"] { flex: 1; min-width: 150px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: left; padding: 0.4rem; border-bottom: 1px solid #ddd; }
-    tfoot td { font-weight: bold; }
-    #error { color: #b00020; margin-bottom: 1rem; }
+    button {
+      background: var(--terracotta);
+      color: #fdfaf0;
+      border: none;
+      border-radius: 6px;
+      padding: 0.55rem 1.2rem;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover { background: var(--terracotta-dark); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th {
+      text-align: left;
+      padding: 0.6rem 0.7rem;
+      background: var(--sage);
+      color: #fdfaf0;
+      font-family: "Roboto Slab", Georgia, serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    td {
+      padding: 0.55rem 0.7rem;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tfoot td {
+      font-weight: 700;
+      color: var(--forest);
+      border-top: 2px solid var(--sage);
+      border-bottom: none;
+    }
+    #error {
+      color: var(--error);
+      background: rgba(163, 53, 42, 0.08);
+      border-radius: 6px;
+      padding: 0.5rem 0.7rem;
+      margin: -1rem 0 1.5rem;
+    }
   </style>
 </head>
 <body>
