@@ -83,6 +83,9 @@ function createApp(store) {
         source,
         notes,
       });
+      if (!find) {
+        return res.status(200).json({ duplicate: true, message: 'A find with this url already exists' });
+      }
       res.status(201).json(find);
     } catch (e) {
       res.status(502).json({ error: 'Could not save find right now' });
@@ -95,6 +98,44 @@ function createApp(store) {
       res.status(204).end();
     } catch (e) {
       res.status(502).json({ error: 'Could not remove find right now' });
+    }
+  });
+
+  app.get('/api/sources', async (req, res) => {
+    try {
+      res.json(await store.readSources());
+    } catch (e) {
+      res.status(502).json({ error: 'Could not load sources right now' });
+    }
+  });
+
+  app.post('/api/sources', async (req, res) => {
+    const { query, category, notes } = req.body ?? {};
+
+    if (typeof query !== 'string' || !query.trim()) {
+      return res.status(400).json({ error: 'query is required' });
+    }
+    if (!FIND_CATEGORIES.includes(category)) {
+      return res.status(400).json({ error: `category must be one of: ${FIND_CATEGORIES.join(', ')}` });
+    }
+
+    try {
+      const source = await store.addSource({ query, category, notes });
+      if (!source) {
+        return res.status(200).json({ duplicate: true, message: 'This query is already saved' });
+      }
+      res.status(201).json(source);
+    } catch (e) {
+      res.status(502).json({ error: 'Could not save source right now' });
+    }
+  });
+
+  app.delete('/api/sources/:id', async (req, res) => {
+    try {
+      await store.deleteSource(req.params.id);
+      res.status(204).end();
+    } catch (e) {
+      res.status(502).json({ error: 'Could not remove source right now' });
     }
   });
 

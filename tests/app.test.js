@@ -12,6 +12,7 @@ function startTestServer() {
   const store = createPurchaseStore({
     purchasesFile: path.join(dir, 'purchases.json'),
     findsFile: path.join(dir, 'finds.json'),
+    sourcesFile: path.join(dir, 'sources.json'),
   });
   const app = createApp(store);
   const server = http.createServer(app);
@@ -153,6 +154,109 @@ test('POST /api/finds rejects a missing url', async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'Mystery Item', category: 'set', price: 20, source: 'X' }),
+    });
+    assert.equal(res.status, 400);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /api/finds reports a duplicate instead of creating a second row for the same url', async () => {
+  const { server, baseUrl } = await startTestServer();
+  try {
+    const payload = { name: 'Dup Item', category: 'set', price: 20, onSale: false, url: 'https://x.com/dup', source: 'X' };
+    await fetch(`${baseUrl}/api/finds`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const secondRes = await fetch(`${baseUrl}/api/finds`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    assert.equal(secondRes.status, 200);
+    const body = await secondRes.json();
+    assert.equal(body.duplicate, true);
+
+    const all = await (await fetch(`${baseUrl}/api/finds`)).json();
+    assert.equal(all.length, 1);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /api/sources returns an empty array initially', async () => {
+  const { server, baseUrl } = await startTestServer();
+  try {
+    const res = await fetch(`${baseUrl}/api/sources`);
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), []);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /api/sources adds a source and it shows up in GET, then DELETE removes it', async () => {
+  const { server, baseUrl } = await startTestServer();
+  try {
+    const postRes = await fetch(`${baseUrl}/api/sources`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'mahjong tile set', category: 'set', notes: 'High hit rate on Etsy' }),
+    });
+    assert.equal(postRes.status, 201);
+    const created = await postRes.json();
+    assert.equal(created.query, 'mahjong tile set');
+
+    const getRes = await fetch(`${baseUrl}/api/sources`);
+    const all = await getRes.json();
+    assert.equal(all.length, 1);
+
+    const delRes = await fetch(`${baseUrl}/api/sources/${created.id}`, { method: 'DELETE' });
+    assert.equal(delRes.status, 204);
+
+    const afterDelete = await (await fetch(`${baseUrl}/api/sources`)).json();
+    assert.equal(afterDelete.length, 0);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /api/sources reports a duplicate instead of creating a second row for the same query', async () => {
+  const { server, baseUrl } = await startTestServer();
+  try {
+    const payload = { query: 'mahjong tile set', category: 'set' };
+    await fetch(`${baseUrl}/api/sources`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const secondRes = await fetch(`${baseUrl}/api/sources`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    assert.equal(secondRes.status, 200);
+    const body = await secondRes.json();
+    assert.equal(body.duplicate, true);
+
+    const all = await (await fetch(`${baseUrl}/api/sources`)).json();
+    assert.equal(all.length, 1);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /api/sources rejects an invalid category', async () => {
+  const { server, baseUrl } = await startTestServer();
+  try {
+    const res = await fetch(`${baseUrl}/api/sources`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'mahjong tile set', category: 'gadget' }),
     });
     assert.equal(res.status, 400);
   } finally {

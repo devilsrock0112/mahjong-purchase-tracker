@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3000;
 const store = createPurchaseStore({
   purchasesFile: path.join(__dirname, 'data', 'purchases.json'),
   findsFile: path.join(__dirname, 'data', 'finds.json'),
+  sourcesFile: path.join(__dirname, 'data', 'sources.json'),
 });
 const app = createApp(store);
 
