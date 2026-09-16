@@ -18,6 +18,7 @@
       --ink: #33301f;
       --border: rgba(51, 48, 31, 0.16);
       --error: #a3352a;
+      --sub: #6b6650;
     }
     * { box-sizing: border-box; }
     body {
@@ -98,6 +99,34 @@
       padding: 2px 6px;
     }
     .remove-btn:hover { color: var(--error); }
+    #finds-updated {
+      color: var(--sub);
+      font-size: 0.85rem;
+      margin: -0.25rem 0 1rem;
+    }
+    .category-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    .filter-btn {
+      background: #fff;
+      color: var(--forest);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.35rem 0.9rem;
+      font-family: "Nunito Sans", sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .filter-btn.active {
+      background: var(--sage);
+      color: #fdfaf0;
+      border-color: var(--sage);
+    }
+    .filter-btn:hover:not(.active) { background: var(--cream); }
     form {
       display: flex;
       gap: 0.6rem;
@@ -201,6 +230,16 @@
   </section>
 
   <section id="tab-finds" class="tab-panel" hidden>
+    <p id="finds-updated"></p>
+    <div class="category-filters" id="category-filters">
+      <button type="button" class="filter-btn active" data-category="all">All</button>
+      <button type="button" class="filter-btn" data-category="set">Tile Sets</button>
+      <button type="button" class="filter-btn" data-category="rack">Racks</button>
+      <button type="button" class="filter-btn" data-category="clothing">Clothing</button>
+      <button type="button" class="filter-btn" data-category="mat">Mats</button>
+      <button type="button" class="filter-btn" data-category="card-case">Card Cases</button>
+      <button type="button" class="filter-btn" data-category="other">Other</button>
+    </div>
     <table class="finds">
       <thead>
         <tr><th>Name</th><th>Category</th><th>Price</th><th>Source</th><th>Found</th><th></th></tr>
