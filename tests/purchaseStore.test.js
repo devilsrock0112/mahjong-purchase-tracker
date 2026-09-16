@@ -5,17 +5,18 @@ const os = require('node:os');
 const path = require('node:path');
 const { createPurchaseStore } = require('../lib/purchaseStore');
 
-function tempFilePath() {
-  return path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'mpt-')), 'purchases.json');
+function tempPaths() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mpt-'));
+  return { purchasesFile: path.join(dir, 'purchases.json'), findsFile: path.join(dir, 'finds.json') };
 }
 
 test('readPurchases returns empty array when file does not exist', () => {
-  const store = createPurchaseStore(tempFilePath());
+  const store = createPurchaseStore(tempPaths());
   assert.deepEqual(store.readPurchases(), []);
 });
 
 test('addPurchase persists a purchase and readPurchases returns it', () => {
-  const store = createPurchaseStore(tempFilePath());
+  const store = createPurchaseStore(tempPaths());
   const saved = store.addPurchase({ date: '2026-09-15', item: 'Bamboo tile set', price: 42.5 });
 
   assert.equal(saved.date, '2026-09-15');
@@ -29,8 +30,8 @@ test('addPurchase persists a purchase and readPurchases returns it', () => {
 });
 
 test('addPurchase appends to existing purchases without losing them', () => {
-  const filePath = tempFilePath();
-  const store = createPurchaseStore(filePath);
+  const paths = tempPaths();
+  const store = createPurchaseStore(paths);
   store.addPurchase({ date: '2026-09-01', item: 'Tile brush', price: 8 });
   store.addPurchase({ date: '2026-09-02', item: 'Carrying case', price: 25 });
 
@@ -42,8 +43,66 @@ test('addPurchase appends to existing purchases without losing them', () => {
 
 test('addPurchase creates the data directory if it does not exist yet', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mpt-'));
-  const filePath = path.join(dir, 'nested', 'purchases.json');
-  const store = createPurchaseStore(filePath);
+  const paths = { purchasesFile: path.join(dir, 'nested', 'purchases.json'), findsFile: path.join(dir, 'nested', 'finds.json') };
+  const store = createPurchaseStore(paths);
   store.addPurchase({ date: '2026-09-15', item: 'Mat', price: 15 });
-  assert.equal(fs.existsSync(filePath), true);
+  assert.equal(fs.existsSync(paths.purchasesFile), true);
+});
+
+test('readFinds returns empty array when file does not exist', () => {
+  const store = createPurchaseStore(tempPaths());
+  assert.deepEqual(store.readFinds(), []);
+});
+
+test('addFind persists a find with defaults filled in', () => {
+  const store = createPurchaseStore(tempPaths());
+  const saved = store.addFind({
+    name: 'Peacock Feather Boutique Tile Set',
+    category: 'set',
+    price: 189,
+    originalPrice: 249,
+    onSale: true,
+    saleReason: '24% off, seller-marked clearance',
+    url: 'https://example-boutique.com/peacock-set',
+    source: 'Example Boutique',
+  });
+
+  assert.equal(saved.name, 'Peacock Feather Boutique Tile Set');
+  assert.equal(saved.category, 'set');
+  assert.equal(saved.price, 189);
+  assert.equal(saved.originalPrice, 249);
+  assert.equal(saved.onSale, true);
+  assert.equal(typeof saved.id, 'string');
+  assert.equal(typeof saved.foundDate, 'string');
+
+  const all = store.readFinds();
+  assert.equal(all.length, 1);
+  assert.deepEqual(all[0], saved);
+});
+
+test('addFind defaults originalPrice to null and notes to empty string when omitted', () => {
+  const store = createPurchaseStore(tempPaths());
+  const saved = store.addFind({
+    name: 'Embroidered Mahjong Mat',
+    category: 'mat',
+    price: 65,
+    onSale: false,
+    url: 'https://example-boutique.com/mat',
+    source: 'Example Boutique',
+  });
+
+  assert.equal(saved.originalPrice, null);
+  assert.equal(saved.notes, '');
+});
+
+test('deleteFind removes only the matching find', () => {
+  const store = createPurchaseStore(tempPaths());
+  const first = store.addFind({ name: 'A', category: 'rack', price: 30, onSale: false, url: 'https://x.com/a', source: 'X' });
+  store.addFind({ name: 'B', category: 'clothing', price: 40, onSale: false, url: 'https://x.com/b', source: 'X' });
+
+  store.deleteFind(first.id);
+
+  const remaining = store.readFinds();
+  assert.equal(remaining.length, 1);
+  assert.equal(remaining[0].name, 'B');
 });

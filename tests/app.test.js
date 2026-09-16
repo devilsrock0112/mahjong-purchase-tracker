@@ -8,8 +8,11 @@ const { createApp } = require('../app');
 const { createPurchaseStore } = require('../lib/purchaseStore');
 
 function startTestServer() {
-  const filePath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'mpt-app-')), 'purchases.json');
-  const store = createPurchaseStore(filePath);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mpt-app-'));
+  const store = createPurchaseStore({
+    purchasesFile: path.join(dir, 'purchases.json'),
+    findsFile: path.join(dir, 'finds.json'),
+  });
   const app = createApp(store);
   const server = http.createServer(app);
   return new Promise((resolve) => {
@@ -75,6 +78,81 @@ test('POST /api/purchases rejects a non-positive price', async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ date: '2026-09-15', item: 'Tiles', price: -5 }),
+    });
+    assert.equal(res.status, 400);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /api/finds returns an empty array initially', async () => {
+  const { server, baseUrl } = await startTestServer();
+  try {
+    const res = await fetch(`${baseUrl}/api/finds`);
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), []);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /api/finds adds a find and it shows up in GET, then DELETE removes it', async () => {
+  const { server, baseUrl } = await startTestServer();
+  try {
+    const postRes = await fetch(`${baseUrl}/api/finds`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Peacock Feather Boutique Tile Set',
+        category: 'set',
+        price: 189,
+        originalPrice: 249,
+        onSale: true,
+        saleReason: '24% off, seller-marked clearance',
+        url: 'https://example-boutique.com/peacock-set',
+        source: 'Example Boutique',
+      }),
+    });
+    assert.equal(postRes.status, 201);
+    const created = await postRes.json();
+    assert.equal(created.name, 'Peacock Feather Boutique Tile Set');
+    assert.equal(created.onSale, true);
+
+    const getRes = await fetch(`${baseUrl}/api/finds`);
+    const all = await getRes.json();
+    assert.equal(all.length, 1);
+
+    const delRes = await fetch(`${baseUrl}/api/finds/${created.id}`, { method: 'DELETE' });
+    assert.equal(delRes.status, 204);
+
+    const afterDelete = await (await fetch(`${baseUrl}/api/finds`)).json();
+    assert.equal(afterDelete.length, 0);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /api/finds rejects an invalid category', async () => {
+  const { server, baseUrl } = await startTestServer();
+  try {
+    const res = await fetch(`${baseUrl}/api/finds`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Mystery Item', category: 'gadget', price: 20, url: 'https://x.com', source: 'X' }),
+    });
+    assert.equal(res.status, 400);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /api/finds rejects a missing url', async () => {
+  const { server, baseUrl } = await startTestServer();
+  try {
+    const res = await fetch(`${baseUrl}/api/finds`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Mystery Item', category: 'set', price: 20, source: 'X' }),
     });
     assert.equal(res.status, 400);
   } finally {

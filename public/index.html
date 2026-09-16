@@ -37,6 +37,67 @@
       letter-spacing: -0.01em;
       margin: 0 0 1.5rem;
     }
+    h2 {
+      font-family: "Roboto Slab", Georgia, serif;
+      font-weight: 700;
+      color: var(--forest);
+      font-size: 1.2rem;
+      margin: 0 0 0.75rem;
+    }
+    nav.tabs {
+      display: inline-flex;
+      gap: 2px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px;
+      margin-bottom: 1.5rem;
+    }
+    nav.tabs button {
+      background: transparent;
+      color: var(--forest);
+      border: none;
+      border-radius: 999px;
+      padding: 0.5rem 1.1rem;
+      font-family: "Roboto Slab", Georgia, serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    nav.tabs button.active {
+      background: var(--terracotta);
+      color: #fdfaf0;
+    }
+    nav.tabs button:hover:not(.active) { background: var(--cream); }
+    .tab-panel[hidden] { display: none; }
+    .original-price {
+      text-decoration: line-through;
+      color: var(--sub, #6b6650);
+      margin-right: 0.4rem;
+      font-size: 0.85em;
+    }
+    .sale-badge {
+      display: inline-block;
+      background: var(--sage);
+      color: #fdfaf0;
+      border-radius: 999px;
+      padding: 0.1rem 0.6rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.4rem;
+    }
+    table.finds a { color: var(--terracotta); }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--sub, #6b6650);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 2px 6px;
+    }
+    .remove-btn:hover { color: var(--error); }
     form {
       display: flex;
       gap: 0.6rem;
@@ -114,22 +175,40 @@
 </head>
 <body>
   <h1>Mahjong Purchase Tracker</h1>
-  <form id="purchase-form">
-    <input type="date" name="date" required>
-    <input type="text" name="item" placeholder="Item" required>
-    <input type="number" name="price" placeholder="Price" step="0.01" min="0.01" required>
-    <button type="submit">Add</button>
-  </form>
-  <p id="error" hidden></p>
-  <table>
-    <thead>
-      <tr><th>Date</th><th>Item</th><th>Price</th></tr>
-    </thead>
-    <tbody id="purchase-rows"></tbody>
-    <tfoot>
-      <tr><td colspan="2">Total</td><td id="total">$0.00</td></tr>
-    </tfoot>
-  </table>
+
+  <nav class="tabs">
+    <button type="button" class="tab-btn active" data-tab="purchases">Purchases</button>
+    <button type="button" class="tab-btn" data-tab="finds">Supplies Search</button>
+  </nav>
+
+  <section id="tab-purchases" class="tab-panel">
+    <form id="purchase-form">
+      <input type="date" name="date" required>
+      <input type="text" name="item" placeholder="Item" required>
+      <input type="number" name="price" placeholder="Price" step="0.01" min="0.01" required>
+      <button type="submit">Add</button>
+    </form>
+    <p id="error" hidden></p>
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Item</th><th>Price</th></tr>
+      </thead>
+      <tbody id="purchase-rows"></tbody>
+      <tfoot>
+        <tr><td colspan="2">Total</td><td id="total">$0.00</td></tr>
+      </tfoot>
+    </table>
+  </section>
+
+  <section id="tab-finds" class="tab-panel" hidden>
+    <table class="finds">
+      <thead>
+        <tr><th>Name</th><th>Category</th><th>Price</th><th>Source</th><th>Found</th><th></th></tr>
+      </thead>
+      <tbody id="finds-rows"></tbody>
+    </table>
+  </section>
+
   <script src="app.js"></script>
 </body>
 </html>

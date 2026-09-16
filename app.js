@@ -36,6 +36,68 @@ function createApp(store) {
     }
   });
 
+  const FIND_CATEGORIES = ['set', 'rack', 'clothing', 'mat', 'card-case', 'other'];
+
+  app.get('/api/finds', async (req, res) => {
+    try {
+      res.json(await store.readFinds());
+    } catch (e) {
+      res.status(502).json({ error: 'Could not load finds right now' });
+    }
+  });
+
+  app.post('/api/finds', async (req, res) => {
+    const { name, category, price, originalPrice, onSale, saleReason, url, source, notes } = req.body ?? {};
+
+    if (typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'name is required' });
+    }
+    if (!FIND_CATEGORIES.includes(category)) {
+      return res.status(400).json({ error: `category must be one of: ${FIND_CATEGORIES.join(', ')}` });
+    }
+    const numericPrice = Number(price);
+    if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
+      return res.status(400).json({ error: 'price must be a positive number' });
+    }
+    if (typeof url !== 'string' || !url.trim()) {
+      return res.status(400).json({ error: 'url is required' });
+    }
+
+    let numericOriginalPrice = null;
+    if (originalPrice !== undefined && originalPrice !== null && originalPrice !== '') {
+      numericOriginalPrice = Number(originalPrice);
+      if (!Number.isFinite(numericOriginalPrice) || numericOriginalPrice <= 0) {
+        return res.status(400).json({ error: 'originalPrice must be a positive number when provided' });
+      }
+    }
+
+    try {
+      const find = await store.addFind({
+        name,
+        category,
+        price: numericPrice,
+        originalPrice: numericOriginalPrice,
+        onSale: Boolean(onSale),
+        saleReason,
+        url,
+        source,
+        notes,
+      });
+      res.status(201).json(find);
+    } catch (e) {
+      res.status(502).json({ error: 'Could not save find right now' });
+    }
+  });
+
+  app.delete('/api/finds/:id', async (req, res) => {
+    try {
+      await store.deleteFind(req.params.id);
+      res.status(204).end();
+    } catch (e) {
+      res.status(502).json({ error: 'Could not remove find right now' });
+    }
+  });
+
   return app;
 }
 
